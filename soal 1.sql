@@ -1,29 +1,37 @@
-CREATE TABLE `lahan` (
-  `id_lahan`   INT(11)       NOT NULL AUTO_INCREMENT,
-  `id_petani`  INT(11)       NOT NULL,
-  `nama_lahan` VARCHAR(100)  NOT NULL,
-  `lokasi`     VARCHAR(150)  DEFAULT NULL,
-  `luas_m2`    DECIMAL(12,2) NOT NULL CHECK (`luas_m2` > 0),
-  `komoditas`  VARCHAR(50)   NOT NULL,
-  PRIMARY KEY (`id_lahan`)
+-- Tabel Induk 1: HAMA
+CREATE TABLE hama (
+  id_hama    INT(11)       NOT NULL AUTO_INCREMENT,
+  nama_hama  VARCHAR(100)  NOT NULL,
+  gejala     TEXT          DEFAULT NULL,
+  PRIMARY KEY (id_hama),
+  UNIQUE KEY uq_nama_hama (nama_hama)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE `kegiatan` (
-  `id_kegiatan`   INT(11)      NOT NULL AUTO_INCREMENT,
-  `nama_kegiatan` VARCHAR(100) NOT NULL,
-  `satuan`        VARCHAR(20)  NOT NULL,
-  PRIMARY KEY (`id_kegiatan`),
-  UNIQUE KEY `nama_kegiatan` (`nama_kegiatan`)
+
+-- Tabel Induk 2: LAHAN
+CREATE TABLE lahan (
+  id_lahan    INT(11)        NOT NULL AUTO_INCREMENT,
+  id_petani   INT(11)        NOT NULL,
+  nama_lahan  VARCHAR(100)   NOT NULL,
+  lokasi      VARCHAR(150)   DEFAULT NULL,
+  luas_m2     DECIMAL(12,2)  NOT NULL,
+  komoditas   VARCHAR(50)    NOT NULL,
+  PRIMARY KEY (id_lahan),
+  CONSTRAINT chk_luas_positif CHECK (luas_m2 > 0),
+  INDEX idx_lahan_komoditas (komoditas)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE `aktivitas_lahan` (
-  `id_aktivitas`     BIGINT(20)    NOT NULL AUTO_INCREMENT,
-  `id_lahan`         INT(11)       NOT NULL,
-  `id_kegiatan`      INT(11)       NOT NULL,
-  `jumlah`           DECIMAL(10,2) NOT NULL CHECK (`jumlah` >= 0),
-  `waktu_aktivitas`  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `sumber_aktivitas` ENUM('MANUAL','OTOMATIS') NOT NULL DEFAULT 'MANUAL',
-  PRIMARY KEY (`id_aktivitas`),
-  CONSTRAINT `fk_aktivitas_lahan`
-    FOREIGN KEY (`id_lahan`) REFERENCES `lahan` (`id_lahan`),
-  CONSTRAINT `fk_aktivitas_kegiatan`
-    FOREIGN KEY (`id_kegiatan`) REFERENCES `kegiatan` (`id_kegiatan`)
+
+-- Tabel Transaksi: NOTIFIKASI_HAMA
+CREATE TABLE notifikasi_hama (
+  id_notifikasi  INT(11)       NOT NULL AUTO_INCREMENT,
+  id_lahan       INT(11)       NOT NULL,
+  id_hama        INT(11)       NOT NULL,
+  pesan          VARCHAR(255)  NOT NULL,
+  waktu_kirim    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status_baca    TINYINT(1)    NOT NULL DEFAULT 0,
+  PRIMARY KEY (id_notifikasi),
+  INDEX idx_notif_status (id_lahan, status_baca),
+  CONSTRAINT fk_notif_lahan FOREIGN KEY (id_lahan)
+    REFERENCES lahan (id_lahan),
+  CONSTRAINT fk_notif_hama FOREIGN KEY (id_hama)
+    REFERENCES hama (id_hama)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
